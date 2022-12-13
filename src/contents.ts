@@ -18,11 +18,11 @@ export class JupyteachContents extends Contents {
     path: string,
     options: Partial<IModel> = {}
   ): Promise<IModel | null> {
+    console.log('I am in the custom save method!!!', { path, options });
     // call the superclass method
     const out = super.save(path, options);
 
     // now do custom stuffs
-    console.log('I am in the custom save method!!!', { path, options, out });
 
     return out;
   }

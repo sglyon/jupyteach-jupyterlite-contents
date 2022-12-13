@@ -77,3 +77,15 @@ folder is located. Then you can remove the symlink named `@jupyteach/jupyterlite
 ### Packaging the extension
 
 See [RELEASE](RELEASE.md)
+
+```shell
+# first incremement version numbers in _version.py and package.json
+
+# npm
+yarn run build:prod
+npm publish --access public
+
+# python
+python -m build
+twine upload dist/*
+```

@@ -1,6 +1,6 @@
 {
   "name": "@jupyteach/jupyterlite-contents",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A JupyterLite server extension.",
   "keywords": [
     "jupyter",
