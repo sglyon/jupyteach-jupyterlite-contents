@@ -79,7 +79,13 @@
   },
   "jupyterlab": {
     "extension": true,
-    "outputDir": "jupyteach_jupyterlite_contents/labextension"
+    "outputDir": "jupyteach_jupyterlite_contents/labextension",
+    "sharedPackages": {
+      "@jupyterlite/contents": {
+      "bundled": false,
+      "singleton": true
+      }
+    }
   },
   "jupyterlite": {
     "liteExtension": true
