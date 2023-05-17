@@ -123,3 +123,4 @@ jupyter-lite.json
 *.db
 _output
 .jupyterlite.doit.db
+.yarn
