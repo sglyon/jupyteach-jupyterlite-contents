@@ -113,3 +113,12 @@ dmypy.json
 
 # OSX files
 .DS_Store
+
+_output/
+.gitignore
+.gitignore
+jupyter-lite.json
+.envrc
+
+*.db
+_output

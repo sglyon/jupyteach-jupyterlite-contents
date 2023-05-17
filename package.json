@@ -1,6 +1,6 @@
 {
   "name": "@jupyteach/jupyterlite-contents",
-  "version": "0.1.1",
+  "version": "0.1.7",
   "description": "A JupyterLite server extension.",
   "keywords": [
     "jupyter",
@@ -28,33 +28,37 @@
     "url": "https://github.com/sglyon/jupyteach-jupyterlite-contents.git"
   },
   "scripts": {
-    "build": "jlpm build:lib && jlpm build:labextension:dev",
-    "build:prod": "jlpm clean && jlpm build:lib && jlpm build:labextension",
+    "build": "npm run build:lib && npm run build:labextension:dev",
+    "build:prod": "npm run clean && npm run build:lib && npm run build:labextension",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
     "build:lib": "tsc",
-    "clean": "jlpm clean:lib",
-    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
-    "clean:labextension": "rimraf jupyteach_jupyterlite_contents/labextension",
-    "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:lintcache",
-    "eslint": "jlpm eslint:check --fix",
+    "clean": "npm run clean:lib",
+    "clean:lib": "rm -rf lib tsconfig.tsbuildinfo",
+    "clean:labextension": "rm -rf jupyteach_jupyterlite_contents/labextension",
+    "clean:all": "npm run clean:lib && npm run clean:labextension && npm run clean:lintcache",
+    "eslint": "npm run eslint:check --fix",
     "eslint:check": "eslint . --cache --ext .ts,.tsx",
-    "install:extension": "jlpm build",
-    "lint": "jlpm prettier && jlpm eslint",
-    "lint:check": "jlpm prettier:check && jlpm eslint:check",
-    "prettier": "jlpm prettier:base --write --list-different",
+    "install:extension": "npm run build",
+    "lint": "npm run prettier && npm run eslint",
+    "lint:check": "npm run prettier:check && npm run eslint:check",
+    "prettier": "npm run prettier:base --write --list-different",
     "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
-    "prettier:check": "jlpm prettier:base --check",
+    "prettier:check": "npm run prettier:base --check",
     "watch": "run-p watch:src watch:labextension",
     "watch:src": "tsc -w",
     "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
+    "@apollo/client": "3.7.12",
     "@jupyterlab/coreutils": "~5.5.1",
     "@jupyterlab/services": "~6.5.1",
-    "@jupyterlite/contents": "^0.1.0-beta.15",
-    "@jupyterlite/localforage": "^0.1.0-beta.15",
-    "@jupyterlite/server": "^0.1.0-beta.15"
+    "@jupyterlite/contents": "^0.1.0-rc.0",
+    "@jupyterlite/localforage": "^0.1.0-rc.0",
+    "@jupyterlite/server": "^0.1.0-rc.0",
+    "@types/lodash": "^4.14.194",
+    "graphql": "^16.6.0",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.0.0",
@@ -82,8 +86,8 @@
     "outputDir": "jupyteach_jupyterlite_contents/labextension",
     "sharedPackages": {
       "@jupyterlite/contents": {
-      "bundled": false,
-      "singleton": true
+        "bundled": false,
+        "singleton": true
       }
     }
   },
@@ -97,10 +101,10 @@
     "hooks": {
       "before-build-npm": [
         "python -m pip install jupyterlab~=3.1",
-        "jlpm"
+        "npm run"
       ],
       "before-build-python": [
-        "jlpm clean:all"
+        "npm run clean:all"
       ]
     }
   }

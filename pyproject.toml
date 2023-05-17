@@ -38,8 +38,8 @@ exclude = [".github", "binder"]
 "jupyteach_jupyterlite_contents/labextension" = "share/jupyter/labextensions/@jupyteach/jupyterlite-contents"
 "install.json" = "share/jupyter/labextensions/@jupyteach/jupyterlite-contents/install.json"
 
-[tool.hatch.build.hooks.version]
-path = "jupyteach_jupyterlite_contents/_version.py"
+# [tool.hatch.build.hooks.version]
+# path = "jupyteach_jupyterlite_contents/_version.py"
 
 [tool.hatch.build.hooks.jupyter-builder]
 dependencies = ["hatch-jupyter-builder>=0.5"]

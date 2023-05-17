@@ -12,8 +12,8 @@ const contentsPlugin: JupyterLiteServerPlugin<IContents> = {
   requires: [ILocalForage],
   autoStart: true,
   provides: IContents,
-  activate: (app: JupyterLiteServer, forage: ILocalForage) => {
-    console.log('activating custom contents plugin');
+  activate: async (app: JupyterLiteServer, forage: ILocalForage) => {
+    console.debug('activating custom contents plugin');
     const storageName = PageConfig.getOption('contentsStorageName');
     const storageDrivers = JSON.parse(
       PageConfig.getOption('contentsStorageDrivers') || 'null'
@@ -24,7 +24,12 @@ const contentsPlugin: JupyterLiteServerPlugin<IContents> = {
       storageDrivers,
       localforage
     });
-    app.started.then(() => contents.initialize().catch(console.warn));
+    app.started.then(() =>
+      contents
+        .initialize()
+        .then(() => console.debug('custom contents initialized'))
+        .catch(console.warn)
+    );
     return contents;
   }
 };
