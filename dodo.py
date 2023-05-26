@@ -34,7 +34,7 @@ def task_devbuild():
             "rm -rf _output",
             "yarn run build:prod",
             "jupyter lite build --force",
-            "rsync -av --delete ./_output/ ~/src/jupyteach/jupyteach-rw/web/public/jlite/",
+            "rsync -av --delete ./_output/ ../web/public/jlite/",
         ],
     }
 
