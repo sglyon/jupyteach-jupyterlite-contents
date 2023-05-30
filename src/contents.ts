@@ -7,6 +7,7 @@ const GET_NOTEBOOK_FRAGMENT = gql`
   fragment Notebook on ContentBlock {
     id
     createdAt
+    nbContent
     properties
   }
 `;
@@ -26,8 +27,8 @@ interface IContentBlock {
   authorId: number;
   createdAt: string;
   id: number;
+  nbContent: ServerContents.IModel['content'];
   properties: {
-    nbContent: ServerContents.IModel['content'];
     fileName: string;
     lastModified: string;
   };
@@ -83,10 +84,7 @@ export class JupyteachContents extends Contents {
         existing => {
           return {
             ...existing,
-            properties: {
-              ...existing.properties,
-              nbContent: options.content
-            }
+            nbContent: options.content,
           };
         }
       );
@@ -132,17 +130,26 @@ export class JupyteachContents extends Contents {
       const nb = this.apolloClient.readFragment({
         id: key,
         fragment: GET_NOTEBOOK_FRAGMENT
-      }) as Pick<IContentBlock, 'properties' | 'createdAt' | 'id'> | null;
+      }) as Pick<
+        IContentBlock,
+        'properties' | 'createdAt' | 'id' | 'nbContent'
+      > | null;
+      console.debug('[contents.ts] get inside if', {
+        path,
+        options,
+        nb,
+        client: this.apolloClient
+      });
       if (nb) {
         return {
-          content: nb.properties.nbContent,
+          content: nb.nbContent,
           created: nb.createdAt,
           format: 'json',
           last_modified: nb.properties.lastModified,
           mimetype: 'application/x-ipynb+json',
           name: nb.properties.fileName,
           path: nb.properties.fileName,
-          size: JSON.stringify(nb.properties.nbContent).length,
+          size: JSON.stringify(nb.nbContent).length,
           type: 'notebook',
           writable: true
         };
