@@ -2,3 +2,4 @@ jupyterlab==3.6.3
 jupyterlite-core==0.1.0
 jupyterlite-xeus-python==0.8.1
 jupyterlite-pyodide-kernel==0.0.8
+jupyterlab_myst==1.2.0
