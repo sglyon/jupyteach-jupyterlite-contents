@@ -7,6 +7,7 @@ const GET_NOTEBOOK_FRAGMENT = gql`
   fragment Notebook on ContentBlock {
     id
     createdAt
+    nbContent
     properties
   }
 `;
@@ -74,23 +75,13 @@ export class JupyteachContents extends Contents {
     const { id, key } = extractNotebookIdAndKey(path);
 
     if (this.apolloClient && id) {
-      // call updateFragment to update the cache
-      console.debug('[contents.ts] updateFragment', { id, key, nbContent: options.content });
-      this.apolloClient.cache.updateFragment(
-        {
-          id: key,
-          fragment: GET_NOTEBOOK_FRAGMENT
-        },
-        existing => {
-          return {
-            ...existing,
-            properties: {
-              ...existing.properties,
-              nbContent: options.content,
-            },
-          };
+      this.apolloClient.cache.modify({
+        id: key,
+        fields: {
+          nbContent: (_) => options.content
         }
-      );
+      })
+      console.debug('[contents.ts] save --  just called modify to update nbContent')
     }
     return out;
   }
