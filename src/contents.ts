@@ -1,6 +1,5 @@
 import { Contents } from '@jupyterlite/contents';
 import { Contents as ServerContents } from '@jupyterlab/services';
-import { PathExt } from '@jupyterlab/coreutils';
 import { ApolloClient, gql } from '@apollo/client/core';
 
 const GET_NOTEBOOK_FRAGMENT = gql`
@@ -11,17 +10,6 @@ const GET_NOTEBOOK_FRAGMENT = gql`
     properties
   }
 `;
-
-interface IContentResponseType {
-  content: any;
-  name: string;
-  last_modified: string;
-  created: string;
-  size: number;
-  mimetype: string;
-  type: ServerContents.ContentType;
-  filepath: string;
-}
 
 interface IContentBlock {
   authorId: number;
@@ -36,26 +24,30 @@ interface IContentBlock {
   updatedAt: string;
 }
 
-const extractNotebookIdAndKey = (
-  path: string
-): { id: number | undefined; key: string | undefined } => {
-  const basename = PathExt.basename(path);
-  const match = basename.match(/(\d+)\.ipynb/);
-  if (match) {
-    const id = +match[1];
-    return { id, key: `ContentBlock:${id}` };
-  }
-  return { id: undefined, key: undefined };
-};
-
 export type IModel = ServerContents.IModel;
 /**
  * A class to handle requests to /api/contents
  */
 export class JupyteachContents extends Contents {
-  requestId = 0;
-  responses: { [key: number]: IContentResponseType } = {};
   apolloClient: ApolloClient<Record<string, unknown>> | undefined = undefined;
+  contentBlockIDToFileName: { [key: number]: string } = {};
+  fileNameToContentBlockID: { [key: string]: number } = {};
+
+  getIdAndKey = (
+    {fileName, contentBlockId}: {fileName?: string, contentBlockId?: number},
+  ): { id: number | undefined; key: string | undefined } => {
+    if (contentBlockId) {
+      return {id: contentBlockId, key: `ContentBlock:${contentBlockId}`};
+    }
+    if (fileName) {
+      // Try to access blockID in `fileNameToContentBlockID`
+      const blockID = this.fileNameToContentBlockID[fileName];
+      if (blockID) {
+        return {id: blockID, key: `ContentBlock:${blockID}`};
+      }
+    }
+    return {id: undefined, key: undefined};
+  };
 
   /**
    * Save a file.
@@ -71,18 +63,21 @@ export class JupyteachContents extends Contents {
   ): Promise<IModel | null> {
     // call the superclass method
     console.debug('[contents.ts] save', { path, options });
-    const out = super.save(path, options);
-    const { id, key } = extractNotebookIdAndKey(path);
+    const { id, key } = this.getIdAndKey({fileName: options.name});
 
     if (this.apolloClient && id) {
       this.apolloClient.cache.modify({
         id: key,
         fields: {
-          nbContent: (_) => options.content
+          nbContent: _ => options.content
         }
-      })
-      console.debug('[contents.ts] save --  just called modify to update nbContent')
+      });
+      console.debug(
+        '[contents.ts] save --  just called modify to update nbContent'
+      );
     }
+
+    const out = super.save(path, options);
     return out;
   }
 
@@ -106,7 +101,7 @@ export class JupyteachContents extends Contents {
     options?: ServerContents.IFetchOptions | undefined
   ): Promise<ServerContents.IModel | null> {
     // Try this...
-    const { id, key } = extractNotebookIdAndKey(path);
+    console.debug('[contents.ts] get', { path, options });
     const url = new URL(window.location.href);
     const forceRefreshRaw = url.searchParams.get('forceRefresh');
     const haveRefreshArg = forceRefreshRaw !== null;
@@ -119,6 +114,11 @@ export class JupyteachContents extends Contents {
         return out;
       }
     }
+
+    const blockIdRaw = url.searchParams.get('contentBlockId');
+    const contentBlockId = blockIdRaw ? +blockIdRaw : undefined;
+    const { id, key } = this.getIdAndKey({contentBlockId});
+
     if (this.apolloClient && id) {
       // check to see if this is in the cache already -- should be !"])
       const nb = this.apolloClient.readFragment({
@@ -128,30 +128,33 @@ export class JupyteachContents extends Contents {
         IContentBlock,
         'properties' | 'createdAt' | 'id' | 'nbContent'
       > | null;
-      console.debug('[contents.ts] get inside if', {
-        path,
-        options,
-        nb,
-        client: this.apolloClient
-      });
       if (nb) {
-        return {
-          content: nb.nbContent,
-          created: nb.createdAt,
-          format: 'json',
-          last_modified: nb.properties.lastModified,
-          mimetype: 'application/x-ipynb+json',
+        const out = {
           name: nb.properties.fileName,
           path: nb.properties.fileName,
-          size: JSON.stringify(nb.nbContent).length,
-          type: 'notebook',
-          writable: true
+          type: 'notebook' as const,
+          writable: true,
+          created: nb.createdAt,
+          last_modified: nb.properties.lastModified,
+          mimetype: 'application/x-ipynb+json',
+          content: nb.nbContent,
+          format: 'json' as const,
+          size: JSON.stringify(nb.nbContent).length
         };
+        if (contentBlockId) {
+          this.contentBlockIDToFileName[contentBlockId] = nb.properties.fileName;
+          this.fileNameToContentBlockID[nb.properties.fileName] = contentBlockId;
+        }
+        console.debug('[contents.ts] get returning from Apollo cache', { out });
+        return out;
       }
     }
 
+    const out = await super.get(path, options);
+    console.debug('[contents.ts] get fallback response', { out });
+
     // otherwise, just fallback
-    return super.get(path, options);
+    return out;
   }
 
   async createCheckpoint(
