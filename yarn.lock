@@ -1394,9 +1394,9 @@ __metadata:
     "@jupyterlab/builder": ^3.1.0
     "@jupyterlab/coreutils": ~5.5.1
     "@jupyterlab/services": ~6.5.1
-    "@jupyterlite/contents": ^0.1.0-rc.0
-    "@jupyterlite/localforage": ^0.1.0-rc.0
-    "@jupyterlite/server": ^0.1.0-rc.0
+    "@jupyterlite/contents": ^0.1.0
+    "@jupyterlite/localforage": ^0.1.0
+    "@jupyterlite/server": ^0.1.0
     "@types/lodash": ^4.14.194
     "@typescript-eslint/eslint-plugin": ^4.8.1
     "@typescript-eslint/parser": ^4.8.1
@@ -1607,7 +1607,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlite/contents@npm:^0.1.0, @jupyterlite/contents@npm:^0.1.0-rc.0":
+"@jupyterlite/contents@npm:^0.1.0":
   version: 0.1.0
   resolution: "@jupyterlite/contents@npm:0.1.0"
   dependencies:
@@ -1639,7 +1639,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlite/localforage@npm:^0.1.0, @jupyterlite/localforage@npm:^0.1.0-rc.0":
+"@jupyterlite/localforage@npm:^0.1.0":
   version: 0.1.0
   resolution: "@jupyterlite/localforage@npm:0.1.0"
   dependencies:
@@ -1651,7 +1651,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jupyterlite/server@npm:^0.1.0-rc.0":
+"@jupyterlite/server@npm:^0.1.0":
   version: 0.1.0
   resolution: "@jupyterlite/server@npm:0.1.0"
   dependencies:

@@ -53,9 +53,9 @@
     "@apollo/client": "3.7.12",
     "@jupyterlab/coreutils": "~5.5.1",
     "@jupyterlab/services": "~6.5.1",
-    "@jupyterlite/contents": "^0.1.0-rc.0",
-    "@jupyterlite/localforage": "^0.1.0-rc.0",
-    "@jupyterlite/server": "^0.1.0-rc.0",
+    "@jupyterlite/contents": "^0.1.0",
+    "@jupyterlite/localforage": "^0.1.0",
+    "@jupyterlite/server": "^0.1.0",
     "@types/lodash": "^4.14.194",
     "graphql": "^16.6.0",
     "lodash": "^4.17.21"
