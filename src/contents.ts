@@ -33,20 +33,24 @@ export class JupyteachContents extends Contents {
   contentBlockIDToFileName: { [key: number]: string } = {};
   fileNameToContentBlockID: { [key: string]: number } = {};
 
-  getIdAndKey = (
-    {fileName, contentBlockId}: {fileName?: string, contentBlockId?: number},
-  ): { id: number | undefined; key: string | undefined } => {
+  getIdAndKey = ({
+    fileName,
+    contentBlockId
+  }: {
+    fileName?: string;
+    contentBlockId?: number;
+  }): { id: number | undefined; key: string | undefined } => {
     if (contentBlockId) {
-      return {id: contentBlockId, key: `ContentBlock:${contentBlockId}`};
+      return { id: contentBlockId, key: `ContentBlock:${contentBlockId}` };
     }
     if (fileName) {
       // Try to access blockID in `fileNameToContentBlockID`
       const blockID = this.fileNameToContentBlockID[fileName];
       if (blockID) {
-        return {id: blockID, key: `ContentBlock:${blockID}`};
+        return { id: blockID, key: `ContentBlock:${blockID}` };
       }
     }
-    return {id: undefined, key: undefined};
+    return { id: undefined, key: undefined };
   };
 
   /**
@@ -63,7 +67,7 @@ export class JupyteachContents extends Contents {
   ): Promise<IModel | null> {
     // call the superclass method
     console.debug('[contents.ts] save', { path, options });
-    const { id, key } = this.getIdAndKey({fileName: options.name});
+    const { id, key } = this.getIdAndKey({ fileName: options.name });
 
     if (this.apolloClient && id) {
       this.apolloClient.cache.modify({
@@ -102,6 +106,15 @@ export class JupyteachContents extends Contents {
   ): Promise<ServerContents.IModel | null> {
     // Try this...
     console.debug('[contents.ts] get', { path, options });
+
+    // handle matplotlib rc files...
+    if (path.endsWith('matplotlibrc')) {
+      const out = await super.get(path, options);
+      console.debug('[contents.ts] get MATPLOTLIBRC', { path, options, out });
+      if (out) {
+        return out;
+      }
+    }
     const url = new URL(window.location.href);
     const forceRefreshRaw = url.searchParams.get('forceRefresh');
     const haveRefreshArg = forceRefreshRaw !== null;
@@ -117,7 +130,7 @@ export class JupyteachContents extends Contents {
 
     const blockIdRaw = url.searchParams.get('contentBlockId');
     const contentBlockId = blockIdRaw ? +blockIdRaw : undefined;
-    const { id, key } = this.getIdAndKey({contentBlockId});
+    const { id, key } = this.getIdAndKey({ contentBlockId });
 
     if (this.apolloClient && id) {
       // check to see if this is in the cache already -- should be !"])
@@ -142,8 +155,10 @@ export class JupyteachContents extends Contents {
           size: JSON.stringify(nb.nbContent).length
         };
         if (contentBlockId) {
-          this.contentBlockIDToFileName[contentBlockId] = nb.properties.fileName;
-          this.fileNameToContentBlockID[nb.properties.fileName] = contentBlockId;
+          this.contentBlockIDToFileName[contentBlockId] =
+            nb.properties.fileName;
+          this.fileNameToContentBlockID[nb.properties.fileName] =
+            contentBlockId;
         }
         console.debug('[contents.ts] get returning from Apollo cache', { out });
         return out;
