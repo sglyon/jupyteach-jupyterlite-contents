@@ -110,8 +110,8 @@ export class JupyteachContents extends Contents {
     // handle matplotlib rc files...
     if (path.endsWith('matplotlibrc')) {
       const out = await super.get(path, options);
-      console.debug('[contents.ts] get MATPLOTLIBRC', { path, options, out });
       if (out) {
+        console.debug('[contents.ts] get MATPLOTLIBRC', { path, options, out });
         return out;
       }
     }
@@ -124,6 +124,13 @@ export class JupyteachContents extends Contents {
     if (haveRefreshArg && !forceRefresh) {
       const out = await super.get(path, options);
       if (out) {
+        console.debug('[contents.ts] grab from super', {
+          path,
+          options,
+          out,
+          haveRefreshArg,
+          forceRefresh
+        });
         return out;
       }
     }
