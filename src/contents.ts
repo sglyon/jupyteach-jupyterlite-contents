@@ -132,7 +132,7 @@ export class JupyteachContents extends Contents {
     const contentBlockId = blockIdRaw ? +blockIdRaw : undefined;
     const { id, key } = this.getIdAndKey({ contentBlockId });
 
-    if (this.apolloClient && id) {
+    if (this.apolloClient && id && path.endsWith('.ipynb')) {
       // check to see if this is in the cache already -- should be !"])
       const nb = this.apolloClient.readFragment({
         id: key,
