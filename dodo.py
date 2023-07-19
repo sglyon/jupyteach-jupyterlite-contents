@@ -69,6 +69,7 @@ def task_devbuild():
         "actions": [
             "rm -rf _output",
             "yarn run build:prod",
+            "rm -rf ../web/public/jlite/extensions/@jupyteach/jupyterlite-contents",
             "mkdir -p ../web/public/jlite/extensions/@jupyteach/jupyterlite-contents",
             "jupyter lite build --force",
             "rsync -av --delete ./_output/ ../web/public/jlite/",
@@ -81,6 +82,7 @@ def task_quickbuild():
     return {
         "actions": [
             "yarn run build:prod",
+            "rm -rf ../web/public/jlite/extensions/@jupyteach/jupyterlite-contents",
             "mkdir -p ../web/public/jlite/extensions/@jupyteach/jupyterlite-contents",
             "rsync -av --delete ./jupyteach_jupyterlite_contents/labextension/static/ ../web/public/jlite/extensions/@jupyteach/jupyterlite-contents/static/",
             update_jlite_json_quickbuild,
