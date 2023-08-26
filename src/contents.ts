@@ -1,21 +1,11 @@
-import { Contents } from '@jupyterlite/contents';
-import { Contents as ServerContents } from '@jupyterlab/services';
-import { ApolloClient, gql } from '@apollo/client/core';
-
-const GET_NOTEBOOK_FRAGMENT = gql`
-  fragment Notebook on ContentBlock {
-    id
-    createdAt
-    nbContent
-    properties
-  }
-`;
+import { Contents, IModel } from '@jupyterlite/contents';
+import type { Contents as ServerContents } from '@jupyterlab/services';
 
 interface IContentBlock {
   authorId: number;
   createdAt: string;
   id: number;
-  nbContent: ServerContents.IModel['content'];
+  nbContent: IModel['content'];
   properties: {
     fileName: string;
     lastModified: string;
@@ -24,34 +14,35 @@ interface IContentBlock {
   updatedAt: string;
 }
 
-export type IModel = ServerContents.IModel;
 /**
  * A class to handle requests to /api/contents
  */
 export class JupyteachContents extends Contents {
-  apolloClient: ApolloClient<Record<string, unknown>> | undefined = undefined;
-  contentBlockIDToFileName: { [key: number]: string } = {};
-  fileNameToContentBlockID: { [key: string]: number } = {};
+  el: Element | null;
+  nbName: string | null = null;
+  nbPath: string | null = null;
+  contentRaw: string | null = null;
+  contentBlock: IContentBlock | null = null;
 
-  getIdAndKey = ({
-    fileName,
-    contentBlockId
-  }: {
-    fileName?: string;
-    contentBlockId?: number;
-  }): { id: number | undefined; key: string | undefined } => {
-    if (contentBlockId) {
-      return { id: contentBlockId, key: `ContentBlock:${contentBlockId}` };
-    }
-    if (fileName) {
-      // Try to access blockID in `fileNameToContentBlockID`
-      const blockID = this.fileNameToContentBlockID[fileName];
-      if (blockID) {
-        return { id: blockID, key: `ContentBlock:${blockID}` };
+  constructor(options: Contents.IOptions) {
+    super(options);
+    this.el = frameElement;
+    if (this.el) {
+      this.nbName = this.el.getAttribute('data-nb-name');
+      this.nbPath = this.el.getAttribute('data-nb-path');
+      this.contentRaw = this.el.getAttribute('data-content-block');
+      if (this.contentRaw) {
+        this.contentBlock = JSON.parse(this.contentRaw) as IContentBlock;
       }
     }
-    return { id: undefined, key: undefined };
-  };
+    console.log('Done with setup, here is what I found', {
+      el: this.el,
+      nbName: this.nbName,
+      nbPath: this.nbPath,
+      contentRaw: this.contentRaw,
+      contentBlock: this.contentBlock
+    });
+  }
 
   /**
    * Save a file.
@@ -67,121 +58,80 @@ export class JupyteachContents extends Contents {
   ): Promise<IModel | null> {
     // call the superclass method
     console.debug('[contents.ts] save', { path, options });
-    const { id, key } = this.getIdAndKey({ fileName: options.name });
-
-    if (this.apolloClient && id) {
-      this.apolloClient.cache.modify({
-        id: key,
-        fields: {
-          nbContent: _ => options.content
-        }
-      });
-      console.debug(
-        '[contents.ts] save --  just called modify to update nbContent'
-      );
+    if (this.el) {
+      if (this.contentBlock) {
+        const dataName = 'data-content-block';
+        this.contentBlock.nbContent = options.content;
+        this.el.setAttribute(dataName, JSON.stringify(this.contentBlock));
+        console.log('Just saved to ', dataName);
+      }
     }
 
-    const out = super.save(path, options);
-    return out;
-  }
-
-  async initialize(): Promise<void> {
-    const out = await super.initialize();
-    this.apolloClient = (<any>window).parent.apolloClient as ApolloClient<
-      Record<string, unknown>
-    >;
-    console.debug('[contents.ts] I have this client', this.apolloClient);
-    return out;
-  }
-
-  async newUntitled(
-    options?: ServerContents.ICreateOptions | undefined
-  ): Promise<ServerContents.IModel | null> {
-    return super.newUntitled(options);
+    // TODO: if I try to save to a separate directory and it doesn't exist
+    //       it is not created. The object appears in the local storage
+    //       and has the given path, but there are no entries for the directories
+    return super.save(path, options);
   }
 
   async get(
     path: string,
     options?: ServerContents.IFetchOptions | undefined
-  ): Promise<ServerContents.IModel | null> {
-    // Try this...
-    console.debug('[contents.ts] get', { path, options });
-
-    // handle matplotlib rc files...
-    if (path.endsWith('matplotlibrc')) {
-      const out = await super.get(path, options);
-      if (out) {
-        console.debug('[contents.ts] get MATPLOTLIBRC', { path, options, out });
-        return out;
-      }
-    }
+  ): Promise<IModel | null> {
+    console.debug('[contents.ts] get with all the stuffs', {
+      path,
+      options,
+      el: this.el,
+      nbPath: this.nbPath,
+      contentBlock: this.contentBlock,
+      contentsObject: this
+    });
     const url = new URL(window.location.href);
     const forceRefreshRaw = url.searchParams.get('forceRefresh');
     const haveRefreshArg = forceRefreshRaw !== null;
     const forceRefresh = forceRefreshRaw === 'true';
 
-    // if we set forceRefresh to false, then grab from super
-    if (haveRefreshArg && !forceRefresh) {
-      const out = await super.get(path, options);
-      if (out) {
-        console.debug('[contents.ts] grab from super', {
-          path,
-          options,
-          out,
-          haveRefreshArg,
-          forceRefresh
-        });
-        return out;
-      }
+    let matchPath = path;
+    if (matchPath.startsWith('/')) {
+      matchPath = matchPath.slice(1);
     }
 
-    const blockIdRaw = url.searchParams.get('contentBlockId');
-    const contentBlockId = blockIdRaw ? +blockIdRaw : undefined;
-    const { id, key } = this.getIdAndKey({ contentBlockId });
+    let matchNbPath = this.nbPath || '';
+    if (matchNbPath.startsWith('/')) {
+      matchNbPath = matchPath.slice(1);
+    }
 
-    if (this.apolloClient && id && path.endsWith('.ipynb')) {
-      // check to see if this is in the cache already -- should be !"])
-      const nb = this.apolloClient.readFragment({
-        id: key,
-        fragment: GET_NOTEBOOK_FRAGMENT
-      }) as Pick<
-        IContentBlock,
-        'properties' | 'createdAt' | 'id' | 'nbContent'
-      > | null;
-      if (nb) {
+    if (matchPath === matchNbPath && this.el) {
+      // Only if we are trying to get the exact file we said we wanted...
+      // if we set forceRefresh to false, then grab from super
+      if (haveRefreshArg && !forceRefresh) {
+        return await super.get(path, options);
+      }
+
+      // We read this content on mount. Just package it
+      if (this.contentBlock) {
+        // have it -- nice! Package it up!
         const out = {
-          name: nb.properties.fileName,
-          path: nb.properties.fileName,
+          name:
+            this.nbName ||
+            this.contentBlock.properties.fileName ||
+            'ERROR.ipynb',
+          path: this.nbPath || path,
           type: 'notebook' as const,
           writable: true,
-          created: nb.createdAt,
-          last_modified: nb.properties.lastModified,
+          created: this.contentBlock.createdAt,
+          last_modified: this.contentBlock.properties.lastModified,
           mimetype: 'application/x-ipynb+json',
-          content: nb.nbContent,
+          content: this.contentBlock.nbContent,
           format: 'json' as const,
-          size: JSON.stringify(nb.nbContent).length
+          size: this.contentRaw?.length || 0
         };
-        if (contentBlockId) {
-          this.contentBlockIDToFileName[contentBlockId] =
-            nb.properties.fileName;
-          this.fileNameToContentBlockID[nb.properties.fileName] =
-            contentBlockId;
-        }
-        console.debug('[contents.ts] get returning from Apollo cache', { out });
+
+        console.log('[contents.ts] get: returning', out);
+
         return out;
       }
     }
 
-    const out = await super.get(path, options);
-    console.debug('[contents.ts] get fallback response', { out });
-
-    // otherwise, just fallback
-    return out;
-  }
-
-  async createCheckpoint(
-    path: string
-  ): Promise<ServerContents.ICheckpointModel> {
-    return super.createCheckpoint(path);
+    return super.get(path, options);
   }
 }

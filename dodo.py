@@ -22,7 +22,7 @@ def task_build():
     return {
         "actions": [
             "rm -rf _output",
-            "yarn run build:prod",
+            "npm run build:prod",
             "python -m build",
             "jupyter lite build --force",
         ],
@@ -30,7 +30,7 @@ def task_build():
 
 
 def update_jlite_json_quickbuild():
-    jlite_config_path = "../web/public/jlite/jupyter-lite.json"
+    jlite_config_path = "../public/jlite/jupyter-lite.json"
     # first read in existing jupyter-lite.jsonfile
     with open(jlite_config_path, "r") as f:
         jlite = json.load(f)
@@ -64,16 +64,27 @@ def update_jlite_json_quickbuild():
         json.dump(jlite, f, indent=2)
 
 
+def create_api_contents():
+    path = "../public/jlite/api/contents/all.json"
+
+    # first make sure the directory exists
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        f.write('{"contents": []}')
+
+    print("created file")
+
 def task_devbuild():
     return {
         "actions": [
             "rm -rf _output",
-            "yarn run build:prod",
-            "rm -rf ../web/public/jlite/extensions/@jupyteach/jupyterlite-contents",
-            "mkdir -p ../web/public/jlite/extensions/@jupyteach/jupyterlite-contents",
+            "npm run build:prod",
+            "rm -rf ../public/jlite/extensions/@jupyteach/jupyterlite-contents",
+            "mkdir -p ../public/jlite/extensions/@jupyteach/jupyterlite-contents",
             "jupyter lite build --force",
-            "rsync -av --delete ./_output/ ../web/public/jlite/",
+            "rsync -av --delete ./_output/ ../public/jlite/",
             update_jlite_json_quickbuild,
+            create_api_contents,
         ],
     }
 
@@ -81,10 +92,11 @@ def task_devbuild():
 def task_quickbuild():
     return {
         "actions": [
-            "yarn run build:prod",
-            "rm -rf ../web/public/jlite/extensions/@jupyteach/jupyterlite-contents",
-            "mkdir -p ../web/public/jlite/extensions/@jupyteach/jupyterlite-contents",
-            "rsync -av --delete ./jupyteach_jupyterlite_contents/labextension/static/ ../web/public/jlite/extensions/@jupyteach/jupyterlite-contents/static/",
+            "npm run build:prod",
+            "rm -rf ../public/jlite/extensions/@jupyteach/jupyterlite-contents",
+            "mkdir -p ../public/jlite/extensions/@jupyteach/jupyterlite-contents",
+            "rsync -av --delete ./jupyteach_jupyterlite_contents/labextension/static/ ../public/jlite/extensions/@jupyteach/jupyterlite-contents/static/",
             update_jlite_json_quickbuild,
+            create_api_contents,
         ],
     }
