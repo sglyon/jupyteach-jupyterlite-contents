@@ -30,7 +30,7 @@ def task_build():
 
 
 def update_jlite_json_quickbuild():
-    jlite_config_path = "../public/jlite/jupyter-lite.json"
+    jlite_config_path = "./public/jlite/jupyter-lite.json"
     # first read in existing jupyter-lite.jsonfile
     with open(jlite_config_path, "r") as f:
         jlite = json.load(f)
@@ -42,6 +42,7 @@ def update_jlite_json_quickbuild():
         for f in os.listdir("./jupyteach_jupyterlite_contents/labextension/static")
         if f.startswith("remoteEntry.")
     ][0]
+    print("found remoteEntry file:", remoteEntry)
 
     # find the object within jlite['federated_extensions'] that has name == '@jupyteach/jupyterlite-contents'
     ext = None
@@ -65,7 +66,7 @@ def update_jlite_json_quickbuild():
 
 
 def create_api_contents():
-    path = "../public/jlite/api/contents/all.json"
+    path = "./public/jlite/api/contents/all.json"
 
     # first make sure the directory exists
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -74,15 +75,16 @@ def create_api_contents():
 
     print("created file")
 
+
 def task_devbuild():
     return {
         "actions": [
-            "rm -rf _output",
+            "rm -rf _output public",
             "npm run build:prod",
-            "rm -rf ../public/jlite/extensions/@jupyteach/jupyterlite-contents",
-            "mkdir -p ../public/jlite/extensions/@jupyteach/jupyterlite-contents",
             "jupyter lite build --force",
-            "rsync -av --delete ./_output/ ../public/jlite/",
+            "mkdir public",
+            "rsync -av --delete ./_output/ ./public/jlite/",
+            "rsync -av --delete ./jupyteach_jupyterlite_contents/labextension/static/ ./public/jlite/extensions/@jupyteach/jupyterlite-contents/static/",
             update_jlite_json_quickbuild,
             create_api_contents,
         ],
@@ -93,9 +95,9 @@ def task_quickbuild():
     return {
         "actions": [
             "npm run build:prod",
-            "rm -rf ../public/jlite/extensions/@jupyteach/jupyterlite-contents",
-            "mkdir -p ../public/jlite/extensions/@jupyteach/jupyterlite-contents",
-            "rsync -av --delete ./jupyteach_jupyterlite_contents/labextension/static/ ../public/jlite/extensions/@jupyteach/jupyterlite-contents/static/",
+            "rm -rf ./public/jlite/extensions/@jupyteach/jupyterlite-contents",
+            "mkdir -p ./public/jlite/extensions/@jupyteach/jupyterlite-contents",
+            "rsync -av --delete ./jupyteach_jupyterlite_contents/labextension/static/ ./public/jlite/extensions/@jupyteach/jupyterlite-contents/static/",
             update_jlite_json_quickbuild,
             create_api_contents,
         ],

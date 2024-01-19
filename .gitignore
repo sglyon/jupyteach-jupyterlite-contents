@@ -124,3 +124,6 @@ jupyter-lite.json
 _output
 .jupyterlite.doit.db
 .yarn
+public
+.pnp.cjs
+.pnp.loader.mjs

@@ -102,9 +102,16 @@ export class JupyteachContents extends Contents {
 
     if (matchPath === matchNbPath && this.el) {
       // Only if we are trying to get the exact file we said we wanted...
-      // if we set forceRefresh to false, then grab from super
+      // if we set forceRefresh to false, then try to grab
       if (haveRefreshArg && !forceRefresh) {
-        return await super.get(path, options);
+        try {
+          const fromSuper = await super.get(path, options);
+          if (fromSuper !== null) {
+            return fromSuper;
+          }
+        } catch (e) {
+          console.error('Failed to get from super.get', e);
+        }
       }
 
       // We read this content on mount. Just package it

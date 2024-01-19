@@ -9,3 +9,4 @@ dependencies:
   - pandas
   - statsmodels
   - scikit-learn
+  - requests
