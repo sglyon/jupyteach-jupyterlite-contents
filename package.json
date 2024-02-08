@@ -1,6 +1,6 @@
 {
   "name": "@jupyteach/jupyterlite-contents",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A JupyterLite server extension.",
   "keywords": [
     "jupyter",
@@ -50,15 +50,17 @@
     "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
-    "@jupyterlab/coreutils": "~5.5.1",
-    "@jupyterlab/services": "6.5.3",
-    "@jupyterlite/contents": "0.1.2",
-    "@jupyterlite/localforage": "^0.1.0",
-    "@jupyterlite/server": "^0.1.0"
+    "@jupyterlab/coreutils": "~6.1.0",
+    "@jupyterlab/services": "7.1.0",
+    "@jupyterlite/contents": "0.2.3",
+    "@jupyterlite/localforage": "^0.2.3",
+    "@jupyterlite/server": "^0.2.3",
+    "@rjsf/utils": "^5.13.4"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.0.0",
-    "@jupyterlab/builder": "^3.1.0",
+    "@jupyterlab/builder": "^4.1.0",
+    "@types/react": "^17.0.2",
     "@typescript-eslint/eslint-plugin": "^4.8.1",
     "@typescript-eslint/parser": "^4.8.1",
     "eslint": "^7.14.0",
@@ -66,6 +68,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.1.1",
+    "react": "^17.0.2",
     "rimraf": "^3.0.2",
     "typescript": "~4.1.3"
   },
