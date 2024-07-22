@@ -24,7 +24,7 @@ def task_build():
             "rm -rf _output",
             "npm run build:prod",
             "python -m build",
-            "jupyter lite build --force",
+            "jupyter lite build --force --output .",
         ],
     }
 

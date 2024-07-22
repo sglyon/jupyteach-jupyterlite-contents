@@ -7,7 +7,6 @@ pip install -r requirements.txt
 pip install -ve .
 pip install build
 jupyter labextension develop . --overwrite
-jlpm run build
 ```
 
 ## Dev
@@ -23,7 +22,6 @@ To serve
 ```shell
 jupyter lite serve
 ```
-
 
 To build just the extension from within jupyteach:
 
