@@ -90,7 +90,7 @@ export class JupyteachContents extends Contents {
     const haveRefreshArg = forceRefreshRaw !== null;
     const forceRefresh = forceRefreshRaw === 'true';
 
-    let matchPath = path;
+    let matchPath = decodeURIComponent(path);
     if (matchPath.startsWith('/')) {
       matchPath = matchPath.slice(1);
     }
@@ -133,7 +133,7 @@ export class JupyteachContents extends Contents {
           size: this.contentRaw?.length || 0
         };
 
-        console.log('[contents.ts] get: returning', out);
+        console.log('[contents.ts] get: returning', { path, out });
 
         return out;
       }

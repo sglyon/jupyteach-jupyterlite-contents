@@ -87,6 +87,7 @@ def task_devbuild():
             "rsync -av --delete ./jupyteach_jupyterlite_contents/labextension/static/ ./public/jlite/extensions/@jupyteach/jupyterlite-contents/static/",
             update_jlite_json_quickbuild,
             create_api_contents,
+            lambda: print("devbuild complete"),
         ],
     }
 

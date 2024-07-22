@@ -10,3 +10,4 @@ dependencies:
   - statsmodels
   - scikit-learn
   - requests
+  - seaborn
